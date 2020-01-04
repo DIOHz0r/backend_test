@@ -53,6 +53,10 @@ class QuoteRepository
     {
         $data = [];
         $result = $this->findAll();
+        if (!key_exists('quotes', $result)) {
+            return $data;
+        }
+
         foreach ($result['quotes'] as $key => $value) {
             if ($value['author'] != $author) {
                 continue;
