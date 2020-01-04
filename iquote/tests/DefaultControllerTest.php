@@ -7,31 +7,16 @@ use Symfony\Component\Finder\Finder;
 
 class DefaultControllerTest extends WebTestCase
 {
-    protected function getJsonSource()
-    {
-        self::bootKernel();
-
-        $content = '';
-        $sourceDir = self::$kernel->getProjectDir() . '/../';
-        $finder = new Finder();
-        $finder->files()->name('quotes.json')->in($sourceDir);
-        $this->assertTrue($finder->hasResults());
-        foreach ($finder as $file) {
-            $content = $file->getContents();
-        }
-        return $content;
-    }
 
     public function testIndex()
     {
         $client = static::createClient();
-        $data = $this->getJsonSource();
         $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
-        $realJson = json_encode(json_decode($data, true));
-        $this->assertJsonStringEqualsJsonString($realJson, $content);
+        $this->assertJson($content);
+        $this->assertGreaterThan(1, json_decode($content, true));
     }
 
     public function testQuoteLimit()
@@ -47,14 +32,14 @@ class DefaultControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/chinese-proverb');
+        $client->request('GET', '/Maya Angelou');
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
-        $this->assertContains('"The best time to plant a tree was 20 years ago. The second best time is now."', $content);
+        $this->assertStringContainsStringIgnoringCase('people will forget what you did', $content);
 
-        $client->request('GET', '/chinese-proverb?limit=3');
+        $client->request('GET', '/Maya Angelou?limit=2');
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
-        $this->assertCount(3, $content);
+        $this->assertCount(2, json_decode($content, true));
     }
 }

@@ -3,27 +3,27 @@
 namespace App\Controller;
 
 use App\Helper\TransformHelper;
+use App\Repository\QuoteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DefaultController extends AbstractController
 {
 
-    /** KernelInterface $appKernel */
-    private $appKernel;
     /**
      * @var TransformHelper
      */
     private $transformHelper;
+    /**
+     * @var QuoteRepository
+     */
+    private $repository;
 
-    public function __construct(KernelInterface $appKernel, TransformHelper $transformHelper)
+    public function __construct(QuoteRepository $repository, TransformHelper $transformHelper)
     {
-        $this->appKernel = $appKernel;
+        $this->repository = $repository;
         $this->transformHelper = $transformHelper;
     }
 
@@ -32,11 +32,11 @@ class DefaultController extends AbstractController
      */
     public function index()
     {
-        return new JsonResponse($this->findAll());
+        return new JsonResponse($this->repository->findAll());
     }
 
     /**
-     * @Route("/{author}", name="show_author", methods={"GET"}, requirements={"author"="\w+"})
+     * @Route("/{author}", name="show_author", methods={"GET"})
      * @param string $author
      * @param Request $request
      * @return JsonResponse
@@ -49,37 +49,17 @@ class DefaultController extends AbstractController
             return new JsonResponse('Quote limit is 10', 400);
         }
 
-        $result = $this->findAll();
-        $data = [];
-        foreach ($result['quotes'] as $list => $item) {
-            if (!stripos($author, $item['author'])) {
-                continue;
-            }
-
-            $data[] = $this->transformHelper($item['quote']);
+        $result = $this->repository->findByAuthor($author);
+        if ($limit >= 1 && count($result) > $limit) {
+            $result = array_slice($result, 0, $limit);
         }
-        return new JsonResponse($data);
+        $transformHelper = $this->transformHelper;
+        foreach ($result as $key => $item) {
+            $result[$key]['quote'] = $transformHelper($item['quote']);
+        }
+        return new JsonResponse($result);
     }
 
-    /**
-     * @return mixed
-     */
-    private function findAll()
-    {
-        $data = null;
-        $sourceDir = $this->appKernel->getProjectDir() . '/../';
-        $finder = new Finder();
-        $finder->files()->name('quotes.json')->in($sourceDir);
-
-        if (!$finder->hasResults()) {
-            return json_decode($data, true);
-        }
-
-        foreach ($finder as $file) {
-            $data = $file->getContents();
-        }
-        return json_decode($data, true);
-    }
 
     public function fixAuthorName($string)
     {
