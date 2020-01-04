@@ -32,7 +32,15 @@ class DefaultController extends AbstractController
      */
     public function index()
     {
-        return new JsonResponse($this->repository->findAll());
+        $result = $this->repository->findAll();
+        if (!key_exists('quotes', $result)) {
+            return new JsonResponse([], 204);
+        }
+        $transformHelper = $this->transformHelper;
+        foreach ($result['quotes'] as $key => $quote){
+            $result['quotes'][$key]['quote'] = $transformHelper($quote['quote']);
+        }
+        return new JsonResponse($result);
     }
 
     /**
@@ -50,7 +58,13 @@ class DefaultController extends AbstractController
         }
 
         $result = $this->repository->findByAuthor($author);
-        if ($limit >= 1 && count($result) > $limit) {
+        $count = count($result);
+
+        if($count === 0){
+            return new JsonResponse($result, 204);
+        }
+
+        if ($limit >= 1 && $count > $limit) {
             $result = array_slice($result, 0, $limit);
         }
         $transformHelper = $this->transformHelper;

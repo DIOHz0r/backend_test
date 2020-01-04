@@ -3,7 +3,6 @@
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Finder\Finder;
 
 class DefaultControllerTest extends WebTestCase
 {
@@ -16,7 +15,11 @@ class DefaultControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
         $this->assertJson($content);
-        $this->assertGreaterThan(1, json_decode($content, true));
+        $quotes = json_decode($content, true);
+        $this->assertGreaterThan(1, $quotes);
+        $quote = $quotes['quotes'][0]['quote'];
+        $this->assertContains('ABOUT GETTING AND HAVING', $quote);
+        $this->assertStringEndsWith('!', $quote);
     }
 
     public function testQuoteLimit()
@@ -32,14 +35,26 @@ class DefaultControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request('GET', '/Maya Angelou');
+        // test correct result
+        $client->request('GET', '/maya-angelou');
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
-        $this->assertStringContainsStringIgnoringCase('people will forget what you did', $content);
+        $this->assertJson($content);
+        $this->assertContains('PEOPLE WILL FORGET WHAT YOU DID', $content);
+        $quotes = json_decode($content, true);
+        $this->assertStringEndsWith('!', $quotes[0]['quote']);
 
-        $client->request('GET', '/Maya Angelou?limit=2');
+        // test limit
+        $client->request('GET', '/maya-angelou?limit=2');
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
+        $this->assertJson($content);
         $this->assertCount(2, json_decode($content, true));
+
+        // no results
+        $client->request('GET', '/lorem-ipsum');
+        $this->assertResponseStatusCodeSame(204);
+        $content = $client->getResponse()->getContent();
+        $this->assertEmpty($content);
     }
 }
