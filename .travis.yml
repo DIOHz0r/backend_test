@@ -13,6 +13,6 @@ php:
   - 7.4
 
 script:
-  - cd iquote
+  - cd ishout
   - composer install -n --prefer-dist
   - bin/phpunit
