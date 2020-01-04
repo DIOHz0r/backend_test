@@ -37,9 +37,10 @@ class DefaultController extends AbstractController
             return new JsonResponse([], 204);
         }
         $transformHelper = $this->transformHelper;
-        foreach ($result['quotes'] as $key => $quote){
+        foreach ($result['quotes'] as $key => $quote) {
             $result['quotes'][$key]['quote'] = $transformHelper($quote['quote']);
         }
+
         return new JsonResponse($result);
     }
 
@@ -60,7 +61,7 @@ class DefaultController extends AbstractController
         $result = $this->repository->findByAuthor($author);
         $count = count($result);
 
-        if($count === 0){
+        if ($count === 0) {
             return new JsonResponse($result, 204);
         }
 
@@ -71,11 +72,12 @@ class DefaultController extends AbstractController
         foreach ($result as $key => $item) {
             $result[$key]['quote'] = $transformHelper($item['quote']);
         }
+
         return new JsonResponse($result);
     }
 
 
-    public function fixAuthorName($string)
+    protected function fixAuthorName($string)
     {
         return ucwords(str_replace('-', ' ', $string));
     }

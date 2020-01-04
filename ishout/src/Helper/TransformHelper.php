@@ -19,10 +19,10 @@ class TransformHelper
             return $string;
         }
 
-        if(!ctype_alnum($substr)){
+        if (!ctype_alnum($substr)) {
             $string = mb_substr($string, 0, -1);
         }
 
-        return $string . '!';
+        return $string.'!';
     }
 }
