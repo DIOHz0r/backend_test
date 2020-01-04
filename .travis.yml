@@ -2,6 +2,10 @@ language: php
 
 sudo: required
 
+env:
+  global:
+    - CS=7.1
+
 cache:
   directories:
     - "$HOME/.composer/cache"
@@ -13,6 +17,7 @@ php:
   - 7.4
 
 script:
+  - if [ "${TRAVIS_PHP_VERSION:0:3}" = "$CS" ]; then COVERAGE='--coverage-text' ; else COVERAGE='--no-coverage'; fi
   - cd ishout
   - composer install -n --prefer-dist
-  - bin/phpunit
+  - bin/phpunit $COVERAGE
