@@ -5,6 +5,7 @@ namespace App\Repository;
 
 
 use App\Helper\TransformHelper;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -72,10 +73,17 @@ class QuoteRepository
      */
     private function readQuotes(): Finder
     {
-        $finder = $this->finder;
-        $sourceDir = $this->appKernel->getProjectDir().'/../';
-        $finder->files()->name('quotes.json')->in($sourceDir);
+        $adapter = new ArrayAdapter();
 
-        return $finder;
+        $sourceDir = $this->appKernel->getProjectDir().'/../';
+        $cache = $adapter->getItem('quotes_json_'.md5($sourceDir));
+        if (!$cache->isHit()) {
+            $finder = $this->finder;
+            $finder->files()->name('quotes.json')->in($sourceDir);
+            $cache->expiresAfter(60);
+            $adapter->save($cache->set($finder));
+        }
+
+        return $cache->get();
     }
 }
