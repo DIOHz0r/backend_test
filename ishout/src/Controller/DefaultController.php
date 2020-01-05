@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class DefaultController extends AbstractController
 {
@@ -33,15 +34,23 @@ class DefaultController extends AbstractController
     public function index()
     {
         $result = $this->repository->findAll();
+        $data = [];
         if (!key_exists('quotes', $result)) {
-            return new JsonResponse([], 204);
+            return new JsonResponse($data, 204);
         }
         $transformHelper = $this->transformHelper;
         foreach ($result['quotes'] as $key => $quote) {
-            $result['quotes'][$key]['quote'] = $transformHelper($quote['quote']);
+            $author = $quote['author'];
+            $data[$author]['quotes'][] = $transformHelper($quote['quote']);
+            $data[$author]['_links'] = $this->generateUrl(
+                'show_author',
+                ['author' => $this->slugify($author)],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            );
         }
+        ksort($data);
 
-        return new JsonResponse($result);
+        return new JsonResponse($data);
     }
 
     /**
@@ -52,7 +61,7 @@ class DefaultController extends AbstractController
      */
     public function show(string $author, Request $request)
     {
-        $author = $this->fixAuthorName($author);
+        $author = $this->normalizeAuthorName($author);
         $limit = $request->query->get('limit');
         if ($limit > 10) {
             return new JsonResponse('Quote limit is 10', 400);
@@ -69,16 +78,21 @@ class DefaultController extends AbstractController
             $result = array_slice($result, 0, $limit);
         }
         $transformHelper = $this->transformHelper;
-        foreach ($result as $key => $item) {
-            $result[$key]['quote'] = $transformHelper($item['quote']);
+        foreach ($result as $key => $value) {
+            $result[$key] = $transformHelper($value);
         }
 
         return new JsonResponse($result);
     }
 
 
-    protected function fixAuthorName($string)
+    protected function normalizeAuthorName($string)
     {
         return ucwords(str_replace('-', ' ', $string));
+    }
+
+    protected function slugify($string)
+    {
+        return mb_strtolower(str_replace(' ', '-', $string));
     }
 }

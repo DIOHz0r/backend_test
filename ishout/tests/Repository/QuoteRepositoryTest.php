@@ -52,7 +52,7 @@ class QuoteRepositoryTest extends TestCase
         $result = $repository->findByAuthor($author);
         $this->assertIsArray($result);
         $this->assertGreaterThanOrEqual(1, $result);
-        $this->assertEquals($author, $result[0]['author']);
+        $this->assertContains('Your time is limited', $result[0]);
 
         // not existing author
         $result = $repository->findByAuthor('lorem');

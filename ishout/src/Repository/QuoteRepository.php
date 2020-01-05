@@ -57,13 +57,12 @@ class QuoteRepository
             return $data;
         }
 
-        foreach ($result['quotes'] as $key => $value) {
-            if ($value['author'] != $author) {
+        foreach ($result['quotes'] as $key => $item) {
+            if ($item['author'] != $author) {
                 continue;
             }
-            $data[] = $value;
+            $data[] = $item['quote'];
         }
-
         return $data;
     }
 

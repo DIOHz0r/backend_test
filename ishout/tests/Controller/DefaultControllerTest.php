@@ -15,11 +15,13 @@ class DefaultControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $content = $client->getResponse()->getContent();
         $this->assertJson($content);
-        $quotes = json_decode($content, true);
-        $this->assertGreaterThan(1, $quotes);
-        $quote = $quotes['quotes'][0]['quote'];
+        $list = json_decode($content, true);
+        $this->assertGreaterThan(1, $list);
+        $author = $list['Kevin Kruse'];
+        $quote = $author['quotes'][0];
         $this->assertContains('ABOUT GETTING AND HAVING', $quote);
         $this->assertStringEndsWith('!', $quote);
+        $this->assertArrayHasKey('_links', $author);
     }
 
     public function testQuoteLimit()
@@ -42,7 +44,7 @@ class DefaultControllerTest extends WebTestCase
         $this->assertJson($content);
         $this->assertContains('PEOPLE WILL FORGET WHAT YOU DID', $content);
         $quotes = json_decode($content, true);
-        $this->assertStringEndsWith('!', $quotes[0]['quote']);
+        $this->assertStringEndsWith('!', $quotes[0]);
 
         // test limit
         $client->request('GET', '/maya-angelou?limit=2');
