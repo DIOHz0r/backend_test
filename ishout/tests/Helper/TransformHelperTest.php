@@ -7,16 +7,22 @@ use PHPUnit\Framework\TestCase;
 
 class TransformHelperTest extends TestCase
 {
-    public function testTransformation()
+
+    public function testShout()
     {
-        $helper = new TransformHelper();
-        $this->assertEquals('', $helper(''));
-        $this->assertEquals('LOREM!', $helper('lorem'));
-        $this->assertEquals('LOREM!', $helper('lorem!'));
-        $this->assertEquals('LOREM!', $helper('lorem! '));
-        $this->assertEquals('LOREM!!', $helper('lorem!!'));
-        $this->assertEquals('LOREM!', $helper('lorem. '));
-        $this->assertEquals('LOREM IPSUM!', $helper('Lorem Ipsum.'));
-        $this->assertEquals('LOREM! IPSUM!', $helper('Lorem! Ipsum.'));
+        $this->assertEquals('', TransformHelper::shout(''));
+        $this->assertEquals('LOREM!', TransformHelper::shout('lorem'));
+        $this->assertEquals('LOREM!', TransformHelper::shout('lorem!'));
+        $this->assertEquals('LOREM!', TransformHelper::shout('lorem! '));
+        $this->assertEquals('LOREM!!', TransformHelper::shout('lorem!!'));
+        $this->assertEquals('LOREM!', TransformHelper::shout('lorem. '));
+        $this->assertEquals('LOREM IPSUM!', TransformHelper::shout('Lorem Ipsum.'));
+        $this->assertEquals('LOREM! IPSUM!', TransformHelper::shout('Lorem! Ipsum.'));
+    }
+
+    public function testSlugify()
+    {
+        $this->assertEquals('lorem-ipsum', TransformHelper::slugify('–Lorem Ipsum'));
+        $this->assertEquals('lorem-ipsum', TransformHelper::slugify(' Lorem Ipsum '));
     }
 }

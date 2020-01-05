@@ -14,18 +14,13 @@ class DefaultController extends AbstractController
 {
 
     /**
-     * @var TransformHelper
-     */
-    private $transformHelper;
-    /**
      * @var QuoteRepository
      */
     private $repository;
 
-    public function __construct(QuoteRepository $repository, TransformHelper $transformHelper)
+    public function __construct(QuoteRepository $repository)
     {
         $this->repository = $repository;
-        $this->transformHelper = $transformHelper;
     }
 
     /**
@@ -38,13 +33,12 @@ class DefaultController extends AbstractController
         if (!key_exists('quotes', $result)) {
             return new JsonResponse($data, 204);
         }
-        $transformHelper = $this->transformHelper;
         foreach ($result['quotes'] as $key => $quote) {
             $author = $quote['author'];
-            $data[$author]['quotes'][] = $transformHelper($quote['quote']);
+            $data[$author]['quotes'][] = TransformHelper::shout($quote['quote']);
             $data[$author]['_links'] = $this->generateUrl(
                 'show_author',
-                ['author' => $this->slugify($author)],
+                ['author' => TransformHelper::slugify($author)],
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
         }
@@ -61,7 +55,6 @@ class DefaultController extends AbstractController
      */
     public function show(string $author, Request $request)
     {
-        $author = $this->normalizeAuthorName($author);
         $limit = $request->query->get('limit');
         if ($limit > 10) {
             return new JsonResponse('Quote limit is 10', 400);
@@ -77,22 +70,11 @@ class DefaultController extends AbstractController
         if ($limit >= 1 && $count > $limit) {
             $result = array_slice($result, 0, $limit);
         }
-        $transformHelper = $this->transformHelper;
         foreach ($result as $key => $value) {
-            $result[$key] = $transformHelper($value);
+            $result[$key] = TransformHelper::shout($value);
         }
 
         return new JsonResponse($result);
     }
 
-
-    protected function normalizeAuthorName($string)
-    {
-        return ucwords(str_replace('-', ' ', $string));
-    }
-
-    protected function slugify($string)
-    {
-        return mb_strtolower(str_replace(' ', '-', $string));
-    }
 }

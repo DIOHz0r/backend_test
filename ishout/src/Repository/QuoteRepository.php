@@ -4,6 +4,7 @@
 namespace App\Repository;
 
 
+use App\Helper\TransformHelper;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -58,7 +59,7 @@ class QuoteRepository
         }
 
         foreach ($result['quotes'] as $key => $item) {
-            if ($item['author'] != $author) {
+            if (TransformHelper::slugify($item['author']) != TransformHelper::slugify($author)) {
                 continue;
             }
             $data[] = $item['quote'];
